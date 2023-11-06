@@ -24,7 +24,9 @@ class ValidationRequest extends FormRequest
     {
         return [
             'approver' => 'required',
-            'ref_number' => 'required'
+            'ref_number' => 'required',
+            'file_path' => 'nullable',
+            'note' => 'nullable',
         ];
     }
 }

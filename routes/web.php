@@ -37,8 +37,13 @@ Route::middleware([
     Route::get('outgoing', [OutgoingLetterController::class, 'index'])->name('outgoing.index');
     Route::get('outgoing/create', [OutgoingLetterController::class, 'create'])->name('outgoing.create');
     Route::post('outgoing/store', [OutgoingLetterController::class, 'store'])->name('outgoing.store');
+    Route::get('outgoing/show/{ref_number}', [OutgoingLetterController::class, 'show'])->name('outgoing.show');
+
     Route::get('incoming', [IncomingLetterController::class, 'index'])->name('incoming.index');
-    Route::get('incoming/show/{id}', [IncomingLetterController::class, 'show'])->name('incoming.show');
-    Route::get('incoming/show-pdf/{reference_number}', [IncomingLetterController::class, 'showpdf'])->name('incoming.show-pdf');
+    Route::get('incoming/show/{ref_number}', [IncomingLetterController::class, 'show'])->name('incoming.show');
+
+    Route::get('incoming/show-pdf/{reference_number}', [OutgoingLetterController::class, 'showpdf'])->name('incoming.show-pdf');
+    Route::get('incoming/show-reply/{reference_number}', [IncomingLetterController::class, 'showpdf'])->name('incoming.show-reply');
     Route::post('incoming/validate', [IncomingLetterController::class, 'validation'])->name('incoming.validate');
+    Route::post('incoming/reply', [IncomingLetterController::class, 'approvalReply'])->name('incoming.reply');
 });

@@ -30,7 +30,12 @@
                     </div>
                     @endif
                     <h2 class="font-semibold mb-5 text-xl leading-tight">
+                        @role('sadmin|admin')
                         {!! __('Request Validation') !!}
+                        @endrole
+                        @role('mahasiswa')
+                        {!! __('Request Result') !!}
+                        @endrole
                     </h2>
                     <table class="table-auto w-full">
                         <tbody>
@@ -54,6 +59,10 @@
                             <tr>
                                 <th class="border px-6 py-4 text-left">Submit Date</th>
                                 <td class="border px-6 py-4">{{ $data->submit_date}}</td>
+                            </tr>
+                            <tr>
+                                <th class="border px-6 py-4 text-left">Is Validated</th>
+                                <td class="border px-6 py-4">{{ $data->is_validated ? 'VALIDATED' : 'UNVALIDATED'}}</td>
                             </tr>
                             <tr>
                                 <th class="border px-6 py-4 text-left">Received Document</th>
@@ -120,7 +129,7 @@
                                 </div>
                                 <!-- Modal body -->
                                 <div class="p-6 space-y-6">
-                                    <iframe src="{{ route('incoming.show-pdf',$data->reference_number) }}" class="w-full h-screen"></iframe>
+                                    <iframe src="{{ route('incoming.show-reply',$data->reference_number) }}" class="w-full h-screen"></iframe>
                                 </div>
                                 <!-- Modal footer -->
                                 <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
@@ -178,13 +187,111 @@
 
                         <div class="flex flex-wrap -mx-3 mb-6 mt-10">
                             <div class="w-full px-3 text-right">
+                                @if(!$data->is_validated)
                                 <button type="submit" class=" shadow-lg bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" required>
                                     Validasi
                                 </button>
+                                @else
+                                <a href="#" class=" shadow-lg bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" required>
+                                    Request Has Been Validated </a>
+                                @endif
                             </div>
                         </div>
                     </form>
 
+                    @endrole
+
+                    @role('direktur|kprodi')
+                    <div class="flex flex-wrap -mx-3 mb-6 mt-10">
+                        <div class="w-full px-3 text-left">
+                            @if(!$data->is_validated)
+                            <button data-modal-target="reply-modal" data-modal-toggle="reply-modal" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">
+                                Reply
+                            </button>
+                            <!-- Main modal -->
+                            <div id="reply-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                                <div class="relative w-full max-w-2xl max-h-full">
+                                    <!-- Modal content -->
+                                    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                                        <!-- Modal header -->
+                                        <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                                                Reply This Request, Ref Number {{$data->reference_number}}
+                                            </h3>
+                                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="reply-modal">
+                                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                </svg>
+                                                <span class="sr-only">Close modal</span>
+                                            </button>
+                                        </div>
+                                        <!-- Modal body -->
+                                        <form action="{{route('incoming.reply')}}" method="post" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="p-6 space-y-6">
+                                                <div class="flex flex-wrap -mx-3 mb-6">
+                                                    <input type="hidden" name="ref_number" value="{{$data->reference_number}}">
+                                                    <input type="hidden" name="approver" value="{{auth()->user()->identifier}}">
+                                                    <div class="w-full px-3">
+                                                        <label class="block uppercase tracking-wide text-gray-700 dark:text-gray-300 text-xs font-bold mb-2" for="note">
+                                                            Note
+                                                        </label>
+                                                        <textarea name="note" class="form-textarea w-full dark:bg-gray-200 dark:text-gray-700 text-gray-700 border border-gray-200 dark:border-gray-700 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="note" placeholder="Note">{{ old('note') }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="flex flex-wrap -mx-3 mb-6">
+                                                    <div class="w-full px-3">
+                                                        <label class="block uppercase tracking-wide text-gray-700 dark:text-gray-300 text-xs font-bold mb-2" for="file">
+                                                            File
+                                                        </label>
+                                                        <input name="file_path" type="file" class="w-full dark:bg-gray-200 dark:text-gray-700 text-gray-700 border border-gray-200 dark:border-gray-700 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="file"> </div>
+                                                </div>
+                                                <div class="flex flex-wrap -mx-3 mb-6 p-4 space-y-4">
+                                                    <h3 class="mb-5 text-lg font-medium text-gray-900 dark:text-white">Do you agree with this letter?</h3>
+                                                    <ul class="grid w-full gap-6 md:grid-cols-2">
+                                                        <li>
+                                                            <input type="radio" id="status-small" name="status" value="APPROVED" class="hidden peer" required>
+                                                            <label for="status-small" class="inline-flex items-center justify-between w-full p-5 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                                                <div class="block">
+                                                                    <div class="w-full text-lg font-semibold">Approve</div>
+                                                                    <div class="w-full">I Approve this latter</div>
+                                                                </div>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                            </label>
+                                                        </li>
+                                                        <li>
+                                                            <input type="radio" id="status-big" name="status" value="REJECTED" class="hidden peer">
+                                                            <label for="status-big" class="inline-flex items-center justify-between w-full p-5 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                                                <div class="block">
+                                                                    <div class="w-full text-lg font-semibold">Reject</div>
+                                                                    <div class="w-full">I Reject this letter</div>
+                                                                </div>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                            </label>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <!-- Modal footer -->
+                                            <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
+                                                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Send Reply</button>
+                                                <button data-modal-hide="reply-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @else
+                            <a href="#" class=" shadow-lg bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" required>
+                                Request Has Been Reply </a>
+                            @endif
+                        </div>
+                    </div>
                     @endrole
                 </div>
             </div>

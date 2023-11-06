@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">
-            {{ __('Outgoing') }}
+        <h2 class="font-semibold text-xl text-grey-800 leading-tight">
+            {{ __('Incoming') }}
         </h2>
     </x-slot>
 

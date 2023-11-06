@@ -23,12 +23,14 @@ class OutgoingLetterController extends Controller
                     return '
                     <center>
                         <a class="inline-block border border-gray-700 bg-gray-700 text-white rounded-md px-2 py-1 m-1 transition duration-500 ease select-none hover:bg-gray-800 focus:outline-none focus:shadow-outline" 
-                            href="#">
+                            href="' . route('outgoing.show', $item->reference_number) . '">
                             Show Detail
                         </a></center>';
                 })
-
-                ->rawColumns(['action'])
+                ->addColumn('status', function ($item) {
+                    return '<button type="button" class="py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">' . $item->status . '</button>';
+                })
+                ->rawColumns(['action', 'status'])
                 ->make();
         }
         return view('pages.dashboard.outgoing.index');
@@ -52,7 +54,6 @@ class OutgoingLetterController extends Controller
         $referenceNumber = $this->getReferenceNumber($type);
         $user = auth()->user();
         DB::beginTransaction();
-
         try {
             $outgoing = OutgoingLetter::create([
                 'reference_number' => $referenceNumber,
@@ -119,12 +120,24 @@ class OutgoingLetterController extends Controller
 
         return $referenceNumber;
     }
+
+    public function showpdf($reference_number)
+    {
+        $document = OutgoingLetter::where('reference_number', $reference_number)->first();
+        $path = $document->file_path;
+        $content = file_get_contents(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $path));
+        $url = url($path) . '#toolbar=0';
+        return response()->make($content, 200, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($ref_number)
     {
-        //
+        $data = OutgoingLetter::where('reference_number', $ref_number)->first();
+        return view('pages.dashboard.outgoing.show', compact('data'));
     }
 
     /**
