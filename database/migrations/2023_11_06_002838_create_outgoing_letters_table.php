@@ -25,6 +25,7 @@ return new class extends Migration
             $table->date('submit_date')->nullable();
             $table->text('file_path')->nullable();
             $table->boolean('is_validated')->default(false);
+            $table->boolean('is_approve')->default(false);
             $table->string('status');
             $table->timestamps();
         });

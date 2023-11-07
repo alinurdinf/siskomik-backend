@@ -117,10 +117,12 @@ class IncomingLetterController extends Controller
     public function approvalReply(Request $validationRequest)
     {
         DB::beginTransaction();
+        $akademik = AppConfig::where('position', 'AKADEMIK')->with('users')->first();
 
         try {
             $outgoingData = OutgoingLetter::where('reference_number', $validationRequest->ref_number)->first();
             $outgoingData->status = $validationRequest->status;
+            $outgoingData->is_approve = true;
             $outgoingData->save();
 
             $allIncomingData = IncomingLetter::where('reference_number', $validationRequest->ref_number)->get();
@@ -137,7 +139,7 @@ class IncomingLetterController extends Controller
                 'reference_number' => $validationRequest->ref_number,
                 'subject' => $outgoingData->subject,
                 'from' => auth()->user()->email,
-                'to' => $outgoingData->from,
+                'to' => $akademik->users->email,
                 'note' => $validationRequest->note,
                 'type' => $outgoingData->type,
                 'submit_date' => $outgoingData->submit_date,
