@@ -1,5 +1,5 @@
 {
   "version": 2,
-  "builds": [{ "src": "public/**/*", "use": "@vercel/php" }],
+  "builds": [{ "src": "public/**/*", "use": "@now/php" }],
   "routes": [{ "src": "/(.*)", "dest": "public/index.php" }]
 }
