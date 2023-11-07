@@ -36,6 +36,14 @@
                         @csrf
                         <div class="flex flex-wrap -mx-3 mb-6">
                             <div class="w-full px-3">
+                                <label class="block uppercase tracking-wide text-gray-700 dark:text-gray-300 text-xs font-bold mb-2" for="reference_number">
+                                    Ref Number
+                                </label>
+                                <input value="{{ old('reference_number') }}" name="reference_number" class="appearance-none block w-full dark:bg-gray-200 dark:text-gray-700 text-gray-700 border border-gray-200 dark:border-gray-700 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="reference_number" type="text" placeholder="No Surat">
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap -mx-3 mb-6">
+                            <div class="w-full px-3">
                                 <label class="block uppercase tracking-wide text-gray-700 dark:text-gray-300 text-xs font-bold mb-2" for="subject">
                                     Subject
                                 </label>

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->boolean('is_validated')->default(false);
             $table->string('status');
             $table->datetime('date_approval_result')->nullable();
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }

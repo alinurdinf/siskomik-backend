@@ -23,6 +23,14 @@ class IncomingLetterController extends Controller
         if (request()->ajax()) {
             $query = IncomingLetter::where('to', auth()->user()->email)->get();
             return DataTables::of($query)
+                ->addColumn('reference_number', function ($item) {
+                    if (!$item->is_read) {
+                        $badge = '<span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">New</span>';
+                    } else {
+                        $badge = '<span class="bg-purple-100 text-purple-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-purple-900 dark:text-purple-300">Opened</span>';
+                    }
+                    return $item->reference_number . ' ' . $badge;
+                })
                 ->addColumn('action', function ($item) {
                     return '
                     <center>
@@ -34,7 +42,7 @@ class IncomingLetterController extends Controller
                 ->addColumn('status', function ($item) {
                     return '<button type="button" class="py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">' . $item->status . '</button>';
                 })
-                ->rawColumns(['action', 'status'])
+                ->rawColumns(['action', 'status', 'reference_number'])
                 ->make();
         }
         return view('pages.dashboard.incoming.index');
@@ -67,6 +75,7 @@ class IncomingLetterController extends Controller
             $incomingData = IncomingLetter::where('reference_number', $validationRequest->ref_number)->where('to', auth()->user()->email)->first();
             $incomingData->status = 'ON-PROCESS';
             $incomingData->is_validated = true;
+            $incomingData->is_read = true;
             $incomingData->save();
 
             IncomingLetter::create([
@@ -92,10 +101,10 @@ class IncomingLetterController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             dd($e->getMessage());
-            return redirect()->route('incoming.index')->with('error', 'Terjadi kesalahan saat validasi dan pengiriman surat');
+            return redirect()->route('incoming.index')->dangerBanner('Terjadi kesalah' . $e->getMessage());
         }
 
-        return redirect()->route('incoming.index')->with('success', 'Data berhasil divalidasi dan diteruskan');
+        return redirect()->route('incoming.index')->banner('Data berhasil divalidasi dan diteruskan');
     }
 
     public function showpdf($reference_number)
@@ -134,7 +143,7 @@ class IncomingLetterController extends Controller
                 $incomingData->is_validated = true;
                 $incomingData->save();
             }
-
+            IncomingLetter::where('reference_number', $validationRequest->ref_number)->where('to', auth()->user()->email)->update(['is_read' => true]);
             IncomingLetter::create([
                 'reference_number' => $validationRequest->ref_number,
                 'subject' => $outgoingData->subject,
@@ -148,10 +157,10 @@ class IncomingLetterController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('incoming.index')->with('success', 'Balasan berhasil dikirimkan');
+            return redirect()->route('incoming.index')->banner('Balasan berhasil dikirimkan');
         } catch (\Exception $e) {
             DB::rollBack();
-            dd($e->getMessage());
+            return redirect()->route('incoming.index')->dangerBanner('Terjadi kesalahan' . $e->getMessage());
         }
     }
 }

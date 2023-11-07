@@ -145,6 +145,7 @@
                     <form action="{{route('incoming.validate')}}" method="POST">
                         @csrf
                         <input type="hidden" name="ref_number" value="{{$data->reference_number}}">
+                        @if(!$data->is_validated)
                         <div class="flex flex-wrap -mx-3 mb-6 mt-5">
                             <div class="w-full px-3 text-right">
                                 <button id="dropdownHelperRadioButton" data-dropdown-toggle="dropdownHelperRadio" class="text-right text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button" required>
@@ -154,6 +155,7 @@
                                 </button>
                             </div>
                         </div>
+                        @endif
                         <div id="dropdownHelperRadio" class="mt-10 z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-60 dark:bg-gray-700 dark:divide-gray-600" data-popper-reference-hidden="" data-popper-escaped="" data-popper-placement="top" style="inset: auto auto 0px 0px; margin: 0px; transform: translate3d(522.5px, 6119.5px, 0px);" required>
                             <ul class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownHelperRadioButton">
                                 <li>
@@ -192,11 +194,18 @@
                                     Validasi
                                 </button>
                                 @else
+                                @if($data->outgoings->is_approve)
+                                <a href="#" class=" shadow-lg bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" required>
+                                    Send Result to Mahasiswa</a>
+                                @else
                                 <a href="#" class=" shadow-lg bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" required>
                                     Request Has Been Validated </a>
                                 @endif
+                                @endif
+
                             </div>
                         </div>
+
                     </form>
 
                     @endrole

@@ -73,6 +73,7 @@ class IncomingLetterController extends Controller
             $incomingData = IncomingLetter::where('reference_number', $validationRequest->ref_number)->where('to', auth()->user()->email)->first();
             $incomingData->status = 'ON-PROCESS';
             $incomingData->is_validated = true;
+            $incomingData->is_read = true;
             $incomingData->save();
 
             IncomingLetter::create([
