@@ -51,7 +51,7 @@ class OutgoingLetterController extends Controller
     {
         $type = $request->input('type');
         $akademik = AppConfig::where('position', 'AKADEMIK')->with('users')->first();
-        $referenceNumber = $this->getReferenceNumber($type);
+        $referenceNumber = $request->input('reference_number');
         $user = auth()->user();
         DB::beginTransaction();
         try {
@@ -85,11 +85,10 @@ class OutgoingLetterController extends Controller
 
             DB::commit();
 
-            return redirect()->route('outgoing.index')->with('success', 'Surat berhasil disimpan.');
+            return redirect()->route('outgoing.index')->banner('Surat berhasil dikirimkan');
         } catch (\Exception $e) {
             DB::rollback();
-            dd($e->getMessage());
-            return redirect()->back()->with('error', 'Gagal menyimpan surat: ' . $e->getMessage());
+            return redirect()->back()->dangerBanner('Gagal menyimpan surat: ' . $e->getMessage());
         }
     }
 

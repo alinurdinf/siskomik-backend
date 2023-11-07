@@ -26,11 +26,14 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link href="{{ route('incoming.index') }}" :active="request()->routeIs('incoming.*')">
                         {{ __('Incoming Letter') }}
+                        <span class="inline-flex items-center justify-center w-4 h-4 ml-2 text-xs font-semibold text-green-800 bg-green-200 rounded-full">
+                            {{getIncomingMessage(auth()->user()->email)}}
+                        </span>
                     </x-nav-link>
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link href="{{ route('incoming.index') }}" :active="request()->routeIs('incoming.*')">
+                    <x-nav-link href="#">
                         {{ __('Mahasiswa') }}
                     </x-nav-link>
                 </div>
