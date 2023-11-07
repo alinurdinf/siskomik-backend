@@ -66,7 +66,7 @@ class OutgoingLetterController extends Controller
                 'identifier' => auth()->user()->identifier,
                 'status' => 'SENT',
             ]);
-
+            // dd($request);
             if ($request->hasFile('file_path')) {
                 $outgoing->file_path = $request->file_path->store('file', 'public');
             }

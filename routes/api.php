@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\API\IncomingLetterController as APIIncomingLetterController;
+use App\Http\Controllers\API\OutgoingLetterController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\IncomingLetterController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +18,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('user', [UserController::class, 'fetch']);
+    Route::post('logout', [UserController::class, 'logout']);
+    Route::post('outgoing-letters', [OutgoingLetterController::class, 'all']);
+    Route::post('incoming-letters', [APIIncomingLetterController::class, 'all']);
+    Route::post('outgoing-letters/store', [OutgoingLetterController::class, 'store']);
+    Route::post('incoming-letters/validation', [APIIncomingLetterController::class, 'validation']);
 });
+
+
+Route::post('login', [UserController::class, 'login']);
+Route::post('register', [UserController::class, 'register']);

@@ -28,6 +28,13 @@
                         {{ __('Incoming Letter') }}
                     </x-nav-link>
                 </div>
+
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="{{ route('incoming.index') }}" :active="request()->routeIs('incoming.*')">
+                        {{ __('Mahasiswa') }}
+                    </x-nav-link>
+                </div>
+
                 @role('sadmin|admin|direktur|bag-umum|pudir-1')
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
                     <x-dropdown align="left" width="48">
@@ -54,6 +61,10 @@
 
                             <x-dropdown-link href="{{ route('user.index') }}">
                                 {{ __('Users') }}
+                            </x-dropdown-link>
+
+                            <x-dropdown-link href="{{ route('laratrust.roles.index') }}">
+                                {{ __('Role Management') }}
                             </x-dropdown-link>
 
                             <x-dropdown-link href="{{ route('logs') }}">

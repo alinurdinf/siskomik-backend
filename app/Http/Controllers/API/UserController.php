@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -64,38 +66,47 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
-        try {
-            $request->validate([
-                'identifier' => ['required', 'integer', 'max:20'],
-                'name' => ['required', 'string', 'max:255'],
-                'username' => ['required', 'string', 'max:255', 'unique:users'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'password' => ['required', 'string', new Password]
-            ]);
+        return DB::transaction(function () use ($request) {
+            try {
+                $request->validate([
+                    'identifier' => ['required', 'integer'],
+                    'name' => ['required', 'string', 'max:255'],
+                    'username' => ['required', 'string', 'max:255', 'unique:users'],
+                    'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                    'account' => ['required'],
+                    'password' => ['required']
+                ]);
 
-            User::create([
-                'name' => $request->name,
-                'identifier' => $request->identifier,
-                'email' => $request->email,
-                'username' => $request->username,
-                'password' => Hash::make($request->password),
-            ]);
+                if ($request->account == 'MAHASISWA') {
+                    $role = Role::where('name', 'mahasiswa')->first();
+                } else {
+                    $role = Role::where('name', 'dosen')->first();
+                }
 
-            $user = User::where('email', $request->email)->first();
+                $user = User::create([
+                    'name' => $request->name,
+                    'identifier' => $request->identifier,
+                    'email' => $request->email,
+                    'username' => $request->username,
+                    'password' => Hash::make($request->password),
+                ]);
 
-            $tokenResult = $user->createToken('authToken')->plainTextToken;
+                $user->syncRolesWithoutDetaching([$role]);
 
-            return ResponseFormatter::success([
-                'access_token' => $tokenResult,
-                'token_type' => 'Bearer',
-                'user' => $user
-            ], 'User Registered');
-        } catch (Exception $error) {
-            return ResponseFormatter::error([
-                'message' => 'Something went wrong',
-                'error' => $error,
-            ], 'Authentication Failed', 500);
-        }
+                $tokenResult = $user->createToken('authToken')->plainTextToken;
+
+                return ResponseFormatter::success([
+                    'access_token' => $tokenResult,
+                    'token_type' => 'Bearer',
+                    'user' => $user
+                ], 'User Registered');
+            } catch (Exception $error) {
+                return ResponseFormatter::error([
+                    'message' => 'Something went wrong',
+                    'error' => $error,
+                ], 'Authentication Failed', 500);
+            }
+        });
     }
 
     public function logout(Request $request)

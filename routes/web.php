@@ -7,17 +7,6 @@ use App\Http\Controllers\UserController;
 use App\Models\OutgoingLetter;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -32,18 +21,26 @@ Route::middleware([
     })->name('dashboard');
 
     Route::get('app-config', [AppConfigController::class, 'index'])->name('app-config');
+
     Route::get('logs', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index'])->name('logs');
-    Route::get('users', [UserController::class, 'index'])->name('user.index');
-    Route::get('outgoing', [OutgoingLetterController::class, 'index'])->name('outgoing.index');
-    Route::get('outgoing/create', [OutgoingLetterController::class, 'create'])->name('outgoing.create');
-    Route::post('outgoing/store', [OutgoingLetterController::class, 'store'])->name('outgoing.store');
-    Route::get('outgoing/show/{ref_number}', [OutgoingLetterController::class, 'show'])->name('outgoing.show');
 
-    Route::get('incoming', [IncomingLetterController::class, 'index'])->name('incoming.index');
-    Route::get('incoming/show/{ref_number}', [IncomingLetterController::class, 'show'])->name('incoming.show');
+    Route::prefix('users')->name('user.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+    });
 
-    Route::get('incoming/show-pdf/{reference_number}', [OutgoingLetterController::class, 'showpdf'])->name('incoming.show-pdf');
-    Route::get('incoming/show-reply/{reference_number}', [IncomingLetterController::class, 'showpdf'])->name('incoming.show-reply');
-    Route::post('incoming/validate', [IncomingLetterController::class, 'validation'])->name('incoming.validate');
-    Route::post('incoming/reply', [IncomingLetterController::class, 'approvalReply'])->name('incoming.reply');
+    Route::prefix('outgoing')->name('outgoing.')->group(function () {
+        Route::get('/', [OutgoingLetterController::class, 'index'])->name('index');
+        Route::get('create', [OutgoingLetterController::class, 'create'])->name('create');
+        Route::post('store', [OutgoingLetterController::class, 'store'])->name('store');
+        Route::get('show/{ref_number}', [OutgoingLetterController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('incoming')->name('incoming.')->group(function () {
+        Route::get('/', [IncomingLetterController::class, 'index'])->name('index');
+        Route::get('show/{ref_number}', [IncomingLetterController::class, 'show'])->name('show');
+        Route::get('show-pdf/{reference_number}', [OutgoingLetterController::class, 'showpdf'])->name('show-pdf');
+        Route::get('show-reply/{reference_number}', [IncomingLetterController::class, 'showpdf'])->name('show-reply');
+        Route::post('validate', [IncomingLetterController::class, 'validation'])->name('validate');
+        Route::post('reply', [IncomingLetterController::class, 'approvalReply'])->name('reply');
+    });
 });
