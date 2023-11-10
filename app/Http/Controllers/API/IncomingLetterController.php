@@ -79,17 +79,19 @@ class IncomingLetterController extends Controller
 
     public function sendReply(Request $validationRequest)
     {
+        $status = getStatus($validationRequest->status);
         try {
-            DB::beginTransaction();
-            $status = getStatus($validationRequest->status);
+
             $validator = Validator::make($validationRequest->all(), [
                 'file_path' => 'required|file|mimes:pdf',
             ]);
+
             $outgoingData = OutgoingLetter::where('reference_number', $validationRequest->ref_number)->first();
             $outgoingData->status = $status;
-            $outgoingData->reference_number = $validationRequest->no_surat;
+            $outgoingData->letter_number = $validationRequest->no_surat;
             $outgoingData->is_approve = true;
             $outgoingData->save();
+
             $allIncomingData = IncomingLetter::where('reference_number', $validationRequest->ref_number)->get();
 
             foreach ($allIncomingData as $incomingData) {
@@ -98,12 +100,32 @@ class IncomingLetterController extends Controller
                 }
                 $incomingData->status = $status;
                 $incomingData->is_validated = true;
-                $incomingData->reference_number = $validationRequest->no_surat;
+                $incomingData->letter_number = $validationRequest->no_surat;
                 $incomingData->save();
             }
 
-            $sendedLetter =  IncomingLetter::create([
-                'reference_number' => $validationRequest->no_surat,
+            $outgoing = OutgoingLetter::create([
+                'reference_number' => 'Reply-' . $validationRequest->ref_number,
+                'letter_number' => $validationRequest->no_surat,
+                'subject' => 'Jawaban Permintaan Surat',
+                'from' => $outgoingData->to,
+                'to' => $outgoingData->from,
+                'note' => $validationRequest->note,
+                'type' => $outgoingData->type,
+                'letter_date' => now(),
+                'submit_date' => now(),
+                'identifier' => auth()->user()->identifier,
+                'status' => getStatus('APPROVE'),
+            ]);
+
+            if ($validationRequest->hasFile('file_path')) {
+                $outgoing->file_path = $validationRequest->file_path->store('file', 'public');
+            }
+
+            $outgoing->save();
+            $sendedLetter = IncomingLetter::create([
+                'reference_number' => $validationRequest->ref_number,
+                'letter_number' => $validationRequest->no_surat,
                 'subject' => $outgoingData->subject,
                 'from' => auth()->user()->email,
                 'to' => $outgoingData->from,

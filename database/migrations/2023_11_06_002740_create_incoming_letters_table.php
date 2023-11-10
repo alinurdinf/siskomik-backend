@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('incoming_letters', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number');
+            $table->string('letter_number')->nullable();
             $table->string('subject');
             $table->string('from')->nullable();
             $table->string('to')->nullable();

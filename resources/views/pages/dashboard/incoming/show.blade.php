@@ -40,8 +40,8 @@
                     <table class="table-auto w-full">
                         <tbody>
                             <tr>
-                                <th class="border px-6 py-4 text-left">Ref Number</th>
-                                <td class="border px-6 py-4">{{ $data->reference_number }}</td>
+                                <th class="border px-6 py-4 text-left">Letter Number</th>
+                                <td class="border px-6 py-4">{{ $data->no_surat ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <th class="border px-6 py-4 text-left">Subject</th>
@@ -201,9 +201,11 @@
                                 @else
                                 <div class="flex flex-wrap -mx-3 mb-6 mt-10">
                                     <div class="w-full px-3 text-left">
+                                        @if($data->is_approve != true)
                                         <button data-modal-target="reply-modal" data-modal-toggle="reply-modal" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">
                                             Reply
                                         </button>
+                                        @endif
                                         <!-- Main modal -->
                                         <div id="reply-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
                                             <div class="relative w-full max-w-2xl max-h-full">

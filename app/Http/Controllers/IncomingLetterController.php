@@ -117,7 +117,7 @@ class IncomingLetterController extends Controller
 
             $outgoingData = OutgoingLetter::where('reference_number', $validationRequest->ref_number)->first();
             $outgoingData->status = $status;
-            $outgoingData->reference_number = $validationRequest->no_surat;
+            $outgoingData->letter_number = $validationRequest->no_surat;
             $outgoingData->is_approve = true;
             $outgoingData->save();
 
@@ -129,12 +129,32 @@ class IncomingLetterController extends Controller
                 }
                 $incomingData->status = $status;
                 $incomingData->is_validated = true;
-                $incomingData->reference_number = $validationRequest->no_surat;
+                $incomingData->letter_number = $validationRequest->no_surat;
                 $incomingData->save();
             }
 
+            $outgoing = OutgoingLetter::create([
+                'reference_number' => 'Reply-' . $validationRequest->ref_number,
+                'letter_number' => $validationRequest->no_surat,
+                'subject' => 'Jawaban Permintaan Surat',
+                'from' => $outgoingData->to,
+                'to' => $outgoingData->from,
+                'note' => $validationRequest->note,
+                'type' => $outgoingData->type,
+                'letter_date' => now(),
+                'submit_date' => now(),
+                'identifier' => auth()->user()->identifier,
+                'status' => getStatus('APPROVE'),
+            ]);
+
+            if ($validationRequest->hasFile('file_path')) {
+                $outgoing->file_path = $validationRequest->file_path->store('file', 'public');
+            }
+
+            $outgoing->save();
             IncomingLetter::create([
-                'reference_number' => $validationRequest->no_surat,
+                'reference_number' => $validationRequest->ref_number,
+                'letter_number' => $validationRequest->no_surat,
                 'subject' => $outgoingData->subject,
                 'from' => auth()->user()->email,
                 'to' => $outgoingData->from,
@@ -150,6 +170,7 @@ class IncomingLetterController extends Controller
             return redirect()->route('incoming.index')->banner('Balasan berhasil dikirimkan');
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e->getMessage());
             return redirect()->route('incoming.index')->dangerBanner('Terjadi kesalahan' . $e->getMessage());
         }
     }

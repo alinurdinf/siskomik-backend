@@ -19,7 +19,7 @@ if (!function_exists('getStatus')) {
                 break;
 
             case 'APPROVE':
-                $status = 'Permintaan surat telah diproses dan disetujui';
+                $status = 'Selesai, Surat telah disetujui';
                 break;
 
             case 'REJECT':

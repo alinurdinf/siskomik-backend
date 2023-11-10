@@ -100,7 +100,7 @@ class OutgoingLetterController extends Controller
     {
         $type = $request->input('type');
         $akademik = AppConfig::where('position', 'AKADEMIK')->with('users')->first();
-        $referenceNumber = $this->getReferenceNumber($request->$type);
+        $referenceNumber = $this->getReferenceNumber($type);
         $user = auth()->user();
         if ($request->hasFile('file_path')) {
             $this->validate($request, [
@@ -154,7 +154,6 @@ class OutgoingLetterController extends Controller
             ->whereYear('created_at', $currentYear)
             ->latest()
             ->first();
-
         if (!$lastSurat) {
             $lastId = 1;
         } else {

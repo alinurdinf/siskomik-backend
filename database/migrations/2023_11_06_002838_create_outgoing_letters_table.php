@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('outgoing_letters', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number')->unique()->comment('Nomor Surat');
+            $table->string('reference_number')->unique();
+            $table->string('letter_number')->nullable();
             $table->integer('identifier');
             $table->string('subject');
             $table->string('from')->nullable();
