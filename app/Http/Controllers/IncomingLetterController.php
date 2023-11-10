@@ -94,10 +94,11 @@ class IncomingLetterController extends Controller
             ->where('reference_number', $reference_number)
             ->whereNotNull('file_path')
             ->first();
-        if ($document) {
-            $path = $document->file_path;
+        $path = $document->file_path;
+        if ($path) {
+            $content = file_get_contents(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $path));
             $url = url($path) . '#toolbar=0';
-            return response()->make($url, 200, [
+            return response()->make($content, 200, [
                 'Content-Type' => 'application/pdf',
             ]);
         } else {
