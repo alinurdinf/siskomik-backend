@@ -60,7 +60,7 @@
                                 <td class="border px-6 py-4">{{ $data->is_validated ? 'VALIDATED' : 'UNVALIDATED'}}</td>
                             </tr>
                             <tr>
-                                <th class="border px-6 py-4 text-left">Received Document</th>
+                                <th class="border px-6 py-4 text-left">Attachment</th>
                                 <td class="border px-6 py-4"><button data-modal-target="outgoing-file" data-modal-toggle="outgoing-file" class="inline-block border border-gray-700 bg-gray-700 text-white rounded-md px-2 py-1 m-1 transition duration-500 ease select-none hover:bg-gray-800 focus:outline-none focus:shadow-outline py-2" type="button">
                                         Show Document
                                     </button>

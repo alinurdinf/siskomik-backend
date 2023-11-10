@@ -179,11 +179,15 @@ class OutgoingLetterController extends Controller
             ->where('reference_number', $reference_number)
             ->first();
         $path = $document->file_path;
-        $content = file_get_contents(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $path));
-        $url = url($path) . '#toolbar=0';
-        return response()->make($content, 200, [
-            'Content-Type' => 'application/pdf',
-        ]);
+        if ($path) {
+            $content = file_get_contents(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $path));
+            $url = url($path) . '#toolbar=0';
+            return response()->make($content, 200, [
+                'Content-Type' => 'application/pdf',
+            ]);
+        } else {
+            return view('errors.404');
+        }
     }
     /**
      * Display the specified resource.
