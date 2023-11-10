@@ -19,4 +19,9 @@ class IncomingLetter extends Model
     {
         return $this->hasOne(Mahasiswa::class, 'email', 'from');
     }
+
+    public function getFilePathAttribute($file_path)
+    {
+        return config('app.url') . '/storage/' . $file_path;
+    }
 }

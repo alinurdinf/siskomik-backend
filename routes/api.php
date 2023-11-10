@@ -25,6 +25,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('incoming-letters', [APIIncomingLetterController::class, 'all']);
     Route::post('outgoing-letters/store', [OutgoingLetterController::class, 'store']);
     Route::post('incoming-letters/validation', [APIIncomingLetterController::class, 'validation']);
+    Route::post('incoming-letters/send-reply', [APIIncomingLetterController::class, 'sendReply']);
 });
 
 
