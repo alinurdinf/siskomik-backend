@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppConfigController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IncomingLetterController;
 use App\Http\Controllers\OutgoingLetterController;
 use App\Http\Controllers\UserController;
@@ -16,9 +17,7 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
 
     Route::get('app-config', [AppConfigController::class, 'index'])->name('app-config');
 
@@ -34,6 +33,9 @@ Route::middleware([
         Route::post('store', [OutgoingLetterController::class, 'store'])->name('store');
         Route::get('show/{ref_number}', [OutgoingLetterController::class, 'show'])->name('show');
     });
+
+    Route::patch('/fcm-token', [OutgoingLetterController::class, 'updateToken'])->name('fcmToken');
+    Route::post('/send-notification', [OutgoingLetterController::class, 'notification'])->name('notification');
 
     Route::prefix('incoming')->name('incoming.')->group(function () {
         Route::get('/', [IncomingLetterController::class, 'index'])->name('index');

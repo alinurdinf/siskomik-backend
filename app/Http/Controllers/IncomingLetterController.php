@@ -11,10 +11,14 @@ use App\Models\IncomingLetter;
 use App\Models\OutgoingLetter;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\ValidationRequest;
-use PHPUnit\Framework\TestStatus\Incomplete;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
+use App\Notifications\SendPushNotification;
+use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\TestStatus\Incomplete;
 
 class IncomingLetterController extends Controller
 {
@@ -35,12 +39,12 @@ class IncomingLetterController extends Controller
                     return '
                     <center>
                         <a class="inline-block border border-gray-700 bg-gray-700 text-white rounded-md px-2 py-1 m-1 transition duration-500 ease select-none hover:bg-gray-800 focus:outline-none focus:shadow-outline" 
-                            href="' . route('incoming.show', $item->reference_number) . '">
+                            href="' . route('incoming.show', base64_encode($item->reference_number)) . '">
                             Show Detail
                         </a></center>';
                 })
                 ->addColumn('status', function ($item) {
-                    return '<button type="button" class="py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">' . $item->status . '</button>';
+                    return '<a href="#" class="font-semibold text-gray-900 underline dark:text-white decoration-blue-500">' . $item->status . '<a>';
                 })
                 ->rawColumns(['action', 'status', 'reference_number'])
                 ->make();
@@ -50,54 +54,30 @@ class IncomingLetterController extends Controller
 
     public function show($ref_number)
     {
-        $data = IncomingLetter::with('outgoings')->where('reference_number', $ref_number)->where('to', auth()->user()->email)->first();
+        $ref_number = base64_decode($ref_number);
+
+        $data = IncomingLetter::with(['mahasiswas', 'outgoings'])->where('reference_number', $ref_number)->where('to', auth()->user()->email)->first();
         return view('pages.dashboard.incoming.show', compact('data'));
     }
     public function validation(ValidationRequest $validationRequest)
     {
         DB::beginTransaction();
-
+        $status = getStatus($validationRequest->status);
         try {
             $outgoingData = OutgoingLetter::where('reference_number', $validationRequest->ref_number)->first();
+            $incomingData = IncomingLetter::where('reference_number', $validationRequest->ref_number)->first();
             $mahasiswaData = Mahasiswa::where('identifier', $outgoingData->identifier)->first();
-
-            if ($validationRequest->approver == 'DIREKTUR') {
-                $approvalData = AppConfig::where('position', 'DIREKTUR')->with('users')->first();
-            } else {
-                $approvalData = Prodi::where('code', $mahasiswaData->prodi)->with('users')->first();
-            }
-            $email = $approvalData->users->email;
-            $outgoingData->status = 'ON-PROCESS';
-            $outgoingData->to = $email;
-            $outgoingData->is_validated = true;
-            $outgoingData->save();
-
-            $incomingData = IncomingLetter::where('reference_number', $validationRequest->ref_number)->where('to', auth()->user()->email)->first();
-            $incomingData->status = 'ON-PROCESS';
+            $outgoingData->status = $status;
+            $incomingData->status = $status;
             $incomingData->is_validated = true;
             $incomingData->is_read = true;
+            $outgoingData->save();
             $incomingData->save();
 
-            IncomingLetter::create([
-                'reference_number' => $validationRequest->ref_number,
-                'subject' => $outgoingData->subject,
-                'from' => $outgoingData->from,
-                'to' => $email,
-                'note' => $outgoingData->note,
-                'type' => $outgoingData->type,
-                'submit_date' => $outgoingData->submit_date,
-                'status' => 'ON-PROCESS',
-                'is_validated' => false
-            ]);
-
-            $maildata = DB::table('outgoing_letters')
-                ->join('mahasiswas', 'outgoing_letters.identifier', '=', 'mahasiswas.identifier')
-                ->select('outgoing_letters.*', 'mahasiswas.*')
-                ->where('outgoing_letters.reference_number', $outgoingData->reference_number)
-                ->first();
-            Mail::to($email)->send(new LetterApproval($maildata));
-
+            // send email to mahasiswa
             DB::commit();
+            Notification::send(Auth::user(), new SendPushNotification('Validated', 'Pemintaan telah divalidasi,dan segera diproses'));
+            return redirect()->back()->banner('Permintaan berhasil divalidasi');
         } catch (\Exception $e) {
             DB::rollBack();
             dd($e->getMessage());
@@ -109,14 +89,15 @@ class IncomingLetterController extends Controller
 
     public function showpdf($reference_number)
     {
-        $document = IncomingLetter::where('reference_number', $reference_number)
+        $reference_number = base64_decode($reference_number);
+        $document = DB::table('incoming_letters')
+            ->where('reference_number', $reference_number)
             ->whereNotNull('file_path')
             ->first();
         if ($document) {
             $path = $document->file_path;
-            $content = file_get_contents(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $path));
             $url = url($path) . '#toolbar=0';
-            return response()->make($content, 200, [
+            return response()->make($url, 200, [
                 'Content-Type' => 'application/pdf',
             ]);
         } else {
@@ -126,34 +107,42 @@ class IncomingLetterController extends Controller
     public function approvalReply(Request $validationRequest)
     {
         DB::beginTransaction();
-        $akademik = AppConfig::where('position', 'AKADEMIK')->with('users')->first();
-
+        $status = getStatus($validationRequest->status);
         try {
+
+            $validator = Validator::make($validationRequest->all(), [
+                'file_path' => 'required|file|mimes:pdf',
+            ]);
+
             $outgoingData = OutgoingLetter::where('reference_number', $validationRequest->ref_number)->first();
-            $outgoingData->status = $validationRequest->status;
+            $outgoingData->status = $status;
+            $outgoingData->reference_number = $validationRequest->no_surat;
             $outgoingData->is_approve = true;
             $outgoingData->save();
 
             $allIncomingData = IncomingLetter::where('reference_number', $validationRequest->ref_number)->get();
+
             foreach ($allIncomingData as $incomingData) {
                 if ($validationRequest->hasFile('file_path')) {
                     $incomingData->file_path = $validationRequest->file_path->store('file', 'public');
                 }
-                $incomingData->status = $validationRequest->status;
+                $incomingData->status = $status;
                 $incomingData->is_validated = true;
+                $incomingData->reference_number = $validationRequest->no_surat;
                 $incomingData->save();
             }
-            IncomingLetter::where('reference_number', $validationRequest->ref_number)->where('to', auth()->user()->email)->update(['is_read' => true]);
+
             IncomingLetter::create([
-                'reference_number' => $validationRequest->ref_number,
+                'reference_number' => $validationRequest->no_surat,
                 'subject' => $outgoingData->subject,
                 'from' => auth()->user()->email,
-                'to' => $akademik->users->email,
+                'to' => $outgoingData->from,
                 'note' => $validationRequest->note,
                 'type' => $outgoingData->type,
                 'submit_date' => $outgoingData->submit_date,
-                'status' => $validationRequest->status,
-                'is_validated' => true
+                'status' => $status,
+                'is_validated' => true,
+                'is_read' => false,
             ]);
 
             DB::commit();

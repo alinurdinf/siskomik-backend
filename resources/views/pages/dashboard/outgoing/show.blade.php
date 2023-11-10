@@ -87,7 +87,7 @@
                                 </div>
                                 <!-- Modal body -->
                                 <div class="p-6 space-y-6">
-                                    <iframe src="{{ route('incoming.show-pdf',$data->reference_number) }}" class="w-full h-screen"></iframe>
+                                    <iframe src="{{ route('incoming.show-pdf',base64_encode($data->reference_number)) }}" class="w-full h-screen"></iframe>
                                 </div>
                                 <!-- Modal footer -->
                                 <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">

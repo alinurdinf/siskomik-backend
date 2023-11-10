@@ -14,4 +14,9 @@ class IncomingLetter extends Model
     {
         return $this->hasOne(OutgoingLetter::class, 'reference_number', 'reference_number');
     }
+
+    public function mahasiswas()
+    {
+        return $this->hasOne(Mahasiswa::class, 'email', 'from');
+    }
 }

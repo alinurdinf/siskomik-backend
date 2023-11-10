@@ -2,18 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\AppConfig;
 use Illuminate\Http\Request;
 use App\Models\IncomingLetter;
 use App\Models\OutgoingLetter;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use App\Notifications\SendPushNotification;
+use Illuminate\Support\Facades\Notification;
+use Kutia\Larafirebase\Facades\Larafirebase;
 
 class OutgoingLetterController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+
+    public function updateToken(Request $request)
+    {
+        // dd($request);
+        try {
+            $request->user()->update(['fcm_token' => $request->token]);
+            return response()->json([
+                'success' => true
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+            return response()->json([
+                'success' => false
+            ], 500);
+        }
+    }
+
+    public function notification(Request $request)
+    {
+        $request->validate([
+            'title' => 'required',
+            'message' => 'required'
+        ]);
+
+        try {
+            $fcmTokens = User::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
+
+            //Notification::send(null,new SendPushNotification($request->title,$request->message,$fcmTokens));
+
+            /* or */
+
+            //auth()->user()->notify(new SendPushNotification($title,$message,$fcmTokens));
+
+            /* or */
+
+            Larafirebase::withTitle($request->title)
+                ->withBody($request->message)
+                ->sendMessage($fcmTokens);
+
+            return redirect()->back()->with('success', 'Notification Sent Successfully!!');
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Something goes wrong while sending notification.');
+        }
+    }
     public function index()
     {
         if (request()->ajax()) {
@@ -23,12 +72,12 @@ class OutgoingLetterController extends Controller
                     return '
                     <center>
                         <a class="inline-block border border-gray-700 bg-gray-700 text-white rounded-md px-2 py-1 m-1 transition duration-500 ease select-none hover:bg-gray-800 focus:outline-none focus:shadow-outline" 
-                            href="' . route('outgoing.show', $item->reference_number) . '">
+                            href="' . route('outgoing.show', base64_encode($item->reference_number)) . '">
                             Show Detail
                         </a></center>';
                 })
                 ->addColumn('status', function ($item) {
-                    return '<button type="button" class="py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">' . $item->status . '</button>';
+                    return '<a href="#" class="font-semibold text-gray-900 underline dark:text-white decoration-blue-500">' . $item->status . '<a>';
                 })
                 ->rawColumns(['action', 'status'])
                 ->make();
@@ -51,8 +100,13 @@ class OutgoingLetterController extends Controller
     {
         $type = $request->input('type');
         $akademik = AppConfig::where('position', 'AKADEMIK')->with('users')->first();
-        $referenceNumber = $request->input('reference_number');
+        $referenceNumber = $this->getReferenceNumber($request->$type);
         $user = auth()->user();
+        if ($request->hasFile('file_path')) {
+            $this->validate($request, [
+                'file_path' => 'file|mimes:pdf',
+            ]);
+        }
         DB::beginTransaction();
         try {
             $outgoing = OutgoingLetter::create([
@@ -62,11 +116,11 @@ class OutgoingLetterController extends Controller
                 'to' => $akademik->users->email,
                 'note' => $request->note,
                 'type' => $request->type,
+                'letter_date' => now(),
                 'submit_date' => now(),
                 'identifier' => auth()->user()->identifier,
-                'status' => 'SENT',
+                'status' => getStatus('SENT'),
             ]);
-            // dd($request);
             if ($request->hasFile('file_path')) {
                 $outgoing->file_path = $request->file_path->store('file', 'public');
             }
@@ -80,19 +134,17 @@ class OutgoingLetterController extends Controller
                 'note' => $request->note,
                 'type' => $request->type,
                 'submit_date' => now(),
-                'status' => 'SENT'
+                'status' => 'Permintaan Baru'
             ]);
-
             DB::commit();
 
-            return redirect()->route('outgoing.index')->banner('Surat berhasil dikirimkan');
+            return redirect()->route('outgoing.index')->banner('Permintaan Surat telah dikirimkan');
         } catch (\Exception $e) {
             DB::rollback();
+            dd($e->getMessage());
             return redirect()->back()->dangerBanner('Gagal menyimpan surat: ' . $e->getMessage());
         }
     }
-
-
 
 
     public function getReferenceNumber($type)
@@ -122,7 +174,10 @@ class OutgoingLetterController extends Controller
 
     public function showpdf($reference_number)
     {
-        $document = OutgoingLetter::where('reference_number', $reference_number)->first();
+        $reference_number = base64_decode($reference_number);
+        $document = DB::table('outgoing_letters')
+            ->where('reference_number', $reference_number)
+            ->first();
         $path = $document->file_path;
         $content = file_get_contents(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $path));
         $url = url($path) . '#toolbar=0';
@@ -135,6 +190,8 @@ class OutgoingLetterController extends Controller
      */
     public function show($ref_number)
     {
+        $ref_number = base64_decode($ref_number);
+
         $data = OutgoingLetter::where('reference_number', $ref_number)->first();
         return view('pages.dashboard.outgoing.show', compact('data'));
     }

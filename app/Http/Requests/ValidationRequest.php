@@ -23,7 +23,7 @@ class ValidationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'approver' => 'required',
+            'status' => 'required',
             'ref_number' => 'required',
             'file_path' => 'nullable',
             'note' => 'nullable',

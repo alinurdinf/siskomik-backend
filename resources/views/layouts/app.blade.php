@@ -132,6 +132,70 @@
     <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.0.0/flowbite.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase.js"></script>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.3.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.2/firebase-messaging.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+    https://firebase.google.com/docs/web/setup#available-libraries -->
+
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyDHyTmMWk1vZvPEiHzv6RsMKDUyzaFq-wA"
+            , authDomain: "siskomik-backend.firebaseapp.com"
+            , projectId: "siskomik-backend"
+            , storageBucket: "siskomik-backend.appspot.com"
+            , messagingSenderId: "976341310694"
+            , appId: "1:976341310694:web:ffd5619ef0017fa0066f27"
+            , measurementId: "G-VWYMPHFNK9"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const messaging = firebase.messaging();
+
+        function initFirebaseMessagingRegistration() {
+            messaging.requestPermission().then(function() {
+                return messaging.getToken()
+            }).then(function(token) {
+
+                axios.post("{{ route('fcmToken') }}", {
+                    _method: "PATCH"
+                    , token
+                }).then(({
+                    data
+                }) => {
+                    console.log(data)
+                }).catch(({
+                    response: {
+                        data
+                    }
+                }) => {
+                    console.error(data)
+                })
+
+            }).catch(function(err) {
+                console.log(`Token Error :: ${err}`);
+            });
+        }
+
+        initFirebaseMessagingRegistration();
+
+        messaging.onMessage(function({
+            data: {
+                body
+                , title
+            }
+        }) {
+            new Notification(title, {
+                body
+            });
+        });
+
+    </script>
 
 </head>
 <body class="font-sans antialiased">

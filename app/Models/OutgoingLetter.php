@@ -9,4 +9,9 @@ class OutgoingLetter extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function getFilePathAttribute($file_path)
+    {
+        return config('app.url') . '/storage/' . $file_path;
+    }
 }

@@ -18,8 +18,8 @@
                         , width: '5%'
                     }
                     , {
-                        data: 'reference_number'
-                        , name: 'reference_number'
+                        data: 'type'
+                        , name: 'type'
                     }
                     , {
                         data: 'subject'
@@ -33,10 +33,7 @@
                         data: 'to'
                         , name: 'to'
                     }
-                    , {
-                        data: 'type'
-                        , name: 'type'
-                    }
+
                     , {
                         data: 'submit_date'
                         , name: 'submit_date'
@@ -72,11 +69,10 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Ref Number</th>
+                                <th>Type</th>
                                 <th>Subject</th>
                                 <th>From</th>
                                 <th>To</th>
-                                <th>Type</th>
                                 <th>Submit Date</th>
                                 <th>Status</th>
                                 <th>Action</th>

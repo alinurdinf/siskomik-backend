@@ -31,7 +31,8 @@ class User extends Authenticatable implements LaratrustUser
         'email',
         'password',
         'identifier',
-        'username'
+        'username',
+        'fcm_token',
     ];
 
     /**
