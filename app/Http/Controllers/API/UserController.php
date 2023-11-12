@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\UserRoleView;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -40,7 +41,7 @@ class UserController extends Controller
                 ], 'Authentication Failed', 500);
             }
 
-            $user = User::where('email', $request->email)->first();
+            $user = UserRoleView::where('email', $request->email)->first();
             if (!Hash::check($request->password, $user->password, [])) {
                 throw new \Exception('Invalid Credentials');
             }
