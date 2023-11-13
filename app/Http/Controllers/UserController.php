@@ -7,9 +7,15 @@ use App\Models\AppConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Laratrust\Models\Role;
+use Illuminate\Support\Facades\Validator;
+use Laravel\Jetstream\Jetstream;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class UserController extends Controller
 {
+
     public function index()
     {
         if (request()->ajax()) {
@@ -42,4 +48,42 @@ class UserController extends Controller
 
         return view('pages.dashboard.user.index');
     }
+
+    public function create(){
+        return view('pages.dashboard.user.create');
+    }
+
+    public function store(Request $request){
+        try {
+            Validator::make($request->all(), [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' =>'',
+                'identifier' => 'required',
+                'username' => 'required',
+                'account' => 'required',
+            ])->validate();
+    
+            if ($request->input('account') == 'MAHASISWA') {
+                $role = Role::where('name', 'mahasiswa')->first();
+            } else {
+                $role = Role::where('name', 'dosen')->first();
+            }
+    
+            $user = User::create([
+                'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'username' => $request->input('username'),
+                'identifier' => $request->input('identifier'),
+                'password' => Hash::make($request->input('password')),
+            ]);
+    
+            $user->syncRolesWithoutDetaching([$role]);
+    
+            return redirect()->back()->banner('User Account berhasil dibuat');
+        } catch (\Exception $e) {
+            return redirect()->back()->dangerBanner('Error: ' . $e->getMessage());
+        }
+    }
+    
 }

@@ -25,6 +25,8 @@ Route::middleware([
 
     Route::prefix('users')->name('user.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/register', [UserController::class, 'store'])->name('store');
     });
 
     Route::prefix('outgoing')->name('outgoing.')->group(function () {
