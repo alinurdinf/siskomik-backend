@@ -116,4 +116,25 @@ class UserController extends Controller
 
         return ResponseFormatter::success($token, 'Token Revoked');
     }
+
+    public function updateProfile(Request $request)
+    {
+        $data = $request->all();
+        $user = User::find(Auth::user()->id);
+
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            $data['password'] = Auth::user()->password;
+        }
+
+        $user->update([
+            'name' => $data['name'] ?? Auth::user()->name,
+            'username' => $data['username'] ?? Auth::user()->username,
+            'email' => $data['email'] ?? Auth::user()->email,
+            'password' => $data['password'],
+        ]);
+
+        return ResponseFormatter::success($user, 'Profile Updated');
+    }
 }
