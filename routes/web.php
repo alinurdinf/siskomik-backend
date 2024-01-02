@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\AppConfigController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\IncomingLetterController;
-use App\Http\Controllers\OutgoingLetterController;
-use App\Http\Controllers\UserController;
 use App\Models\OutgoingLetter;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AppConfigController;
+use App\Http\Controllers\MatakuliahController;
+use App\Http\Controllers\IncomingLetterController;
+use App\Http\Controllers\OutgoingLetterController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,4 +48,6 @@ Route::middleware([
         Route::post('validate', [IncomingLetterController::class, 'validation'])->name('validate');
         Route::post('reply', [IncomingLetterController::class, 'approvalReply'])->name('reply');
     });
+
+    Route::resource('matakuliah', MatakuliahController::class)->only(['index', 'show', 'create', 'store']);
 });

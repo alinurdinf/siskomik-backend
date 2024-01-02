@@ -38,6 +38,20 @@
                     </x-nav-link>
                 </div>
 
+                @role('sadmin|admin')
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="{{route('matakuliah.index')}}">
+                        {{ __('Matakuliah') }}
+                    </x-nav-link>
+                </div>
+
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="#">
+                        {{ __('KRS') }}
+                    </x-nav-link>
+                </div>
+                @endrole
+
                 @role('sadmin|admin|direktur|bag-umum|pudir-1')
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
                     <x-dropdown align="left" width="48">
@@ -73,6 +87,7 @@
                             <x-dropdown-link href="{{ route('logs') }}">
                                 {{ __('App Logs') }}
                             </x-dropdown-link>
+
 
                         </x-slot>
                     </x-dropdown>
