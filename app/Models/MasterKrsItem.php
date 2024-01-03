@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class MasterKrsItem extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'kode_krs',
+        'kode_matakuliah'
+    ];
 }
