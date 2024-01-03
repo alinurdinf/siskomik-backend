@@ -18,4 +18,21 @@ class MasterKrs extends Model
         'created_by',
         'updated_by'
     ];
+
+    public function items()
+    {
+        return $this->hasMany(MasterKrsItem::class, 'kode_krs', 'kode_krs');
+    }
+
+    public function matakuliah()
+    {
+        return $this->hasManyThrough(
+            Matakuliah::class,
+            MasterKrsItem::class,
+            'kode_krs',
+            'kode_matakuliah',
+            'kode_krs',
+            'kode_matakuliah'
+        );
+    }
 }

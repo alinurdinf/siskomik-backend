@@ -34,6 +34,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('matakuliah/store', [MatakuliahController::class, 'store']);
     Route::get('matakuliah', [MatakuliahController::class, 'fetch']);
 
+    Route::get('krs', [MasterKrsController::class, 'fetch']);
     Route::post('krs/store', [MasterKrsController::class, 'store']);
     Route::post('krs-item/store', [MasterKrsController::class, 'store_krs_item']);
 

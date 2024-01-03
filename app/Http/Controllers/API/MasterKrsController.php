@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class MasterKrsController extends Controller
 {
+
+    public function fetch()
+    {
+        $data = MasterKrs::with(['items', 'matakuliah'])->get();
+        return ResponseFormatter::success($data, 'Data KRS Berhasil Diambil');
+    }
     public function store(Request $request)
     {
         try {
