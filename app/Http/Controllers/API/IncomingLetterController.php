@@ -27,7 +27,7 @@ class IncomingLetterController extends Controller
         $limit = $request->input('limit', 6);
         $status = $request->input('status');
         if ($ref_number) {
-            $incoming = IncomingLetter::where('reference_number', $ref_number)->with('outgoings')->first();
+            $incoming = IncomingLetter::with(['mahasiswas', 'outgoings'])->where('reference_number', $ref_number)->where('to', auth()->user()->email)->first();
             if ($incoming)
                 return ResponseFormatter::success(
                     $incoming,
@@ -41,7 +41,7 @@ class IncomingLetterController extends Controller
                 );
         }
 
-        $incoming = IncomingLetter::where('to', Auth::user()->email);
+        $incoming = IncomingLetter::with(['mahasiswas', 'outgoings'])->where('to', auth()->user()->email);
         if ($status)
             $incoming->where('status', $status);
 
